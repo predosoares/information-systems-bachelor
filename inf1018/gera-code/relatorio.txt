@@ -1,0 +1,66 @@
+			/*Pedro Henrique Aragão Soares 1713186 3WA*/
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+								RELATÓRIO
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+int main (int argc, char* argv[]){
+    FILE *myfp;
+    funcp funcSBF;
+    void *code = NULL;
+    
+    /* Abre o arquivo para leitura */
+    if ((myfp = fopen (argv[1], "r")) == NULL) {
+        perror ("nao conseguiu abrir arquivo!");
+        return 1;
+    }
+    /* Gera o codigo */
+    gera_code(myfp, &code, &funcSBF);
+    if ((code == NULL) || (funcSBF == NULL)) {
+        printf("Erro na geracao\n");
+        return 1;
+    }
+    /* Fecha o arquivo */
+    fclose(myfp);
+    /* Chama a função gerada */
+    printf("%d\n", (*funcSBF)(atoi(argv[2])));
+    
+    /* Libera a memória utilizada */
+    libera_codigo(code);
+    
+    return 0;
+}
+
+
+function
+ret $100
+end
+
+function
+v0 = p0 + $1
+ret v0
+end
+
+function
+zret p0 $1
+v0 = p0 + $0
+v1 = v0 - $1
+v1 = call 0 v1
+v0 = v0 * v1
+ret v0
+end
+
+function
+v0 = p0 * p0
+ret v0
+end
+function
+zret p0 $0
+v0 = p0 - $1
+v1 = call 0 p0
+v0 = call 1 v0
+v0 = v0 + v1
+ret v0
+end
+
+
+

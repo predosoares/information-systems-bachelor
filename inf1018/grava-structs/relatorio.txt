@@ -1,0 +1,139 @@
+/*Pedro Henrique Aragão Soares 1713186 3WA*/
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+								RELATÓRIO
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ENTRADA:
+	nstructs = 3;
+	struct exemplo{
+		long l;
+	    char c1;
+	    char c2;
+	    short s;
+ 
+	} x = {{0x0102030405060708,0x09,0x10,0x1112},{0x0102030405060708,0x09,0x10,0x1112},{0x0102030405060708,0x09,0x10,0x1112}};
+	campos = "lccs";
+	ord = 'B';
+	arquivo = "exemplo";
+  
+SAÍDA:
+	0 /* printf do retorno da função grava_structs */
+	B
+	3
+	*
+	01 02 03 04 05 06 07 08 
+	09 
+	10 
+	11 12 
+	*
+	01 02 03 04 05 06 07 08 
+	09 
+	10 
+	11 12 
+	*
+	01 02 03 04 05 06 07 08 
+	09 
+	10 
+	11 12 
+	*
+	
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ENTRADA:
+	nstructs = 2;
+	struct exemplo{
+		long l;
+	    char c1;
+	    short s;
+	    char c2;
+	    int i;
+	 
+	} x = {{0x0102030405060708,0x09,0x1112,0x10,0x13141516},{0x0102030405060708,0x10,0x1112,0x09,0x13141516}};
+	campos = "lcsci";
+	ord = 'L';
+	arquivo = "exemplo";
+	
+SAÍDA:
+	0
+	L
+	2
+	*
+	08 07 06 05 04 03 02 01 
+	09 
+	12 11 
+	10 
+	16 15 14 13 
+	*
+	08 07 06 05 04 03 02 01 
+	10 	
+	12 11 
+	09 
+	16 15 14 13 
+	*
+	
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ENTRADA:
+	nstructs = 2;
+	struct exemplo{
+		char c;
+		long l;
+ 
+	} x = {{0xCC,0x0000000000001000},{0xBB,0x0102030405060708}};
+	campos = "cl";
+	ord = 'L';
+	arquivo = "exemplo";
+	
+SAÍDA:
+	0
+	L
+	2
+	*
+	cc 
+	00 10 00 00 00 00 00 00 
+	*
+	bb 
+	08 07 06 05 04 03 02 01 
+	*
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ENTRADA:
+	nstructs = 10;
+	struct exemplo{
+		long l;
+	    char c1;
+	    short s;
+	    char c2;
+	    int i;
+	 
+	} x = {{0x00001000},{0x05060708},{0x4ffcab07},{0x090a0b0c},{0x0d0e0f10},{0x01020304},{0x01100000},{0x34153080},{0x09080706},{0x05040302}};
+	campos = "i"
+	ord = 'B'
+	arquivo = "exemplo"
+	
+SAÍDA:
+	0
+	B
+	10
+	*
+	00 00 10 00 
+	*
+	05 06 07 08 
+	*
+	4f fc ab 07 
+	*
+	09 0a 0b 0c 
+	*
+	0d 0e 0f 10 
+	*
+	01 02 03 04 
+	*
+	01 10 00 00 
+	*
+	34 15 30 80 
+	*
+	09 08 07 06 
+	*
+	05 04 03 02 
+	*
+
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+CONCLUSÃO:
+	O algoritmo aparenta estar funcionando de acordo com as restrições do
+enunciado e todas as funções auxiliares estão sendo executadas corretamente.

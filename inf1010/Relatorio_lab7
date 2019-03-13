@@ -1,0 +1,39 @@
+Para 1000 entradas
+	Tempo estimado para hash modular: 0.128308 ms - colisões: 1843
+	Tempo estimado para hash mid-square: 0.132568 ms - colisões: 1787
+	Tempo estimado para hash folding: 0.134049 ms - colisões: 1787
+
+Para 2000 entradas
+	Tempo estimado para hash modular: 0.254677 ms - colisões: 3488
+	Tempo estimado para hash mid-square: 0.257697 ms - colisões: 3144
+	Tempo estimado para hash folding: 0.257535 ms - colisões: 3144
+	
+Para 3000 entradas
+	Tempo estimado para hash modular: 0.381792 ms - colisões: 4715
+	Tempo estimado para hash mid-square: 0.399115 ms - colisões: 5543
+	Tempo estimado para hash folding: 0.396311 ms - colisões: 5543
+	
+Para 5000 entradas
+	Tempo estimado para hash modular: 0.646444 ms - colisões: 7751
+	Tempo estimado para hash mid-square: 0.669012 ms - colisões: 9012
+	Tempo estimado para hash folding: 0.660268 ms - colisões: 9012
+	
+Para 10000 entradas
+	Tempo estimado para hash modular: 1.31127 ms - colisões: 17171
+	Tempo estimado para hash mid-square: 1.33412 ms - colisões: 18828
+	Tempo estimado para hash folding: 1.4607 ms - colisões: 18828
+	
+Para 15000 entradas
+	Tempo estimado para hash modular: 1.93857 ms - colisões: 25435
+	Tempo estimado para hash mid-square: 1.97902 ms - colisões: 23806
+	Tempo estimado para hash folding: 1.98482 ms - colisões: 23806
+
+SEM FATOR PRIMO!
+------------------------------1000-----------------------------
+---------------------------------------------------------------
+Tempo estimado para hash modular: 4.24908 ms - colisões: 462562
+Tempo estimado para hash mid-square: 0.286316 ms - colisões: 18014
+Tempo estimado para hash folding: 0.29102 ms - colisões: 18014
+---------------------------------------------------------------
+
+	
