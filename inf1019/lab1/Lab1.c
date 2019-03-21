@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
     if ( fork() != 0 ){ /* Main process */
         /* Parent code */
         for ( i = 0; i < NUMBER; i++) {
-            printf("PID pai: %d\tContagem: %d\n", getpid(), i);
+            printf("PID pai: %d\t\t\tContagem: %d\n", getpid(), i);
             sleep(1);
         }
         waitpid(-1, &status, 0);
@@ -42,6 +42,10 @@ int main(int argc, char* argv[]){
             puts("Processo neto vai finalizar");
         }
     }
+    
+    return 0;
 }
 
-// Exer 2 - prática de exec
+
+
+
