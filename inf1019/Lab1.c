@@ -12,17 +12,17 @@ int main(int argc, char* argv[]){
     int i;
     int status;
 
-    if ( (fork()) != 0 ){ /* Main process */
+    if ( fork() != 0 ){ /* Main process */
         /* Parent code */
         for ( i = 0; i < NUMBER; i++) {
-        printf("PID pai: %d\tContagem: %d\n", getpid(), i);
-        sleep(1);
+            printf("PID pai: %d\tContagem: %d\n", getpid(), i);
+            sleep(1);
         }
         waitpid(-1, &status, 0);
         puts("Processo pai finalizado");
 
     } else {
-        if ( (fork()) != 0 ) {
+        if ( fork() != 0 ) {
             /* Child code */
             puts("Filho foi criado");
             for ( i = 100; i < NUMBER*2; i++) {

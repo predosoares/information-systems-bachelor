@@ -1,0 +1,6 @@
+#Don't track these contents
+
+# Compiled source #
+*.exe
+
+
