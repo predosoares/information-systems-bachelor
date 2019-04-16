@@ -4,6 +4,7 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 
+#define SHMKEY 8765
 #define SIZEOFSTRING 30
 
 int main (int argc, char *argv[])
@@ -12,7 +13,7 @@ int main (int argc, char *argv[])
     char mensagem[SIZEOFSTRING];
     char *p;
     // obtem o shmid no modo leitura para a chave 8765
-    segmento = shmget (8765, SIZEOFSTRING*(sizeof (char)), S_IRUSR );
+    segmento = shmget (SHMKEY, SIZEOFSTRING*(sizeof (char)), S_IRUSR );
     
     //tratamento de erro para chamada shmget
     if (segmento == -1)

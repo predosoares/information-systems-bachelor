@@ -4,6 +4,7 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 
+#define SHMKEY 8765
 #define SIZEOFSTRING 30
 
 int main (int argc, char *argv[])
@@ -12,7 +13,7 @@ int main (int argc, char *argv[])
     char mensagem[SIZEOFSTRING];
     char *p;
     // aloca a memória compartilhada (chave de identificação 8765)
-    segmento = shmget (8765, SIZEOFSTRING*(sizeof (char)), IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
+    segmento = shmget (SHMKEY, SIZEOFSTRING*(sizeof (char)), IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
     
     //tratamento de erro para chamada shmget
     if (segmento == -1)

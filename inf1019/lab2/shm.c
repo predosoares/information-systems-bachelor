@@ -29,25 +29,19 @@ int main (int argc, char *argv[])
         puts ("Erro na criação do novo processo");
         exit (-2);
 
-    }
-    
-    else if (id == 0)
+    } else if (id == 0)
     {
-        for (int i = 0; i < 5; i++) {
-            *p += 5;
+        for (int i = 0; i < 10; i++) {
+            *p += 3;
+            printf ("Processo filho = %d\n", *p);
         }
-        printf ("Processo filho = %d\n", *p);
-
-    }
-    else
+    } else 
     {
-
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 10; i++) {
             *p += 10;
+            printf ("Processo pai = %d\n", *p);
         }
-        printf ("Processo pai = %d\n", *p);
-        pid = wait (&status);
-
+        //pid = wait (&status);
     }
     // libera a memória compartilhada do processo
     shmdt (p);
