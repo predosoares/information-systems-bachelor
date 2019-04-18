@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <wait.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define EVER ;;
@@ -9,7 +9,7 @@
 void childhandler(int signo);
 int delay;
 
-int main(int argc, char*argv[])
+int main(int argc, char * argv[])
 {
     pid_t pid;
 
@@ -44,4 +44,3 @@ void childhandler(int signo) /* Executed if child dies before parent */
     printf("Child %d terminated within %d seconds com estado %d.\n", pid, delay, status);
     exit(0);
 }
-
