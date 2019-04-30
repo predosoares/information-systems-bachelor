@@ -2,24 +2,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <limits.h>
 #include <unistd.h>
 
-#define NUM_THREADS 10
-#define SIZE 1000
+#define NUM_THREADS 20
+#define SIZE 16000
 
-int bigger;
-int smallest; 
-int threadThatFoundBigger;
-int threadThatFoundSmallest;
+// Global Variables ------------------
+unsigned int bigger;
+unsigned int smallest; 
+unsigned int threadThatFoundBigger;
+unsigned int threadThatFoundSmallest;
 
 typedef struct array
 {
-    int * array;
+    unsigned int * array;
     int lenght;
 
 } tpArray;
 
 tpArray * listOfNumbers = NULL;
+//------------------------------------
+
 
 void * search(void * threadID)
 {
@@ -53,14 +57,14 @@ void iniciar_aleatorio(void)
     rand();
 }
 
-int aleatorio(int a, int b)
+unsigned int aleatorio(unsigned int a, unsigned int b)
 {
     double r;
     r = (double) rand()/RAND_MAX;
-    return (int)(a + r*(b-a));
+    return (unsigned int)(a + r*(b-a));
 }
 
-void inicializeArray()
+void inicializeArray(void)
 {
     listOfNumbers = (tpArray * ) malloc (sizeof(tpArray));
 
@@ -70,7 +74,7 @@ void inicializeArray()
         exit(-1);
     }
 
-    listOfNumbers->array = (int *) malloc (SIZE * sizeof(int));
+    listOfNumbers->array = (unsigned int *) malloc (SIZE * sizeof(unsigned int));
 
     if (listOfNumbers->array == NULL)
     {
@@ -82,7 +86,7 @@ void inicializeArray()
        
     for (int i = 0; i < listOfNumbers->lenght; i++)
     {
-        listOfNumbers->array[i] = aleatorio(0, 10000);
+        listOfNumbers->array[i] = aleatorio(0, UINT_MAX);
     }
 }
 
@@ -113,7 +117,7 @@ int main(int argc, char * argv[])
     
     for(i = 0 ; i < NUM_THREADS ; i++)
     {
-        pthread_join(threads[i],NULL); /* wait for all the threads to terminate */
+        pthread_join(threads[i], NULL); /* wait for all the threads to terminate */
     }
 
     ticks[1] = clock();
@@ -121,8 +125,8 @@ int main(int argc, char * argv[])
     takenTime = (double) (ticks[1] - ticks[0]) / CLOCKS_PER_SEC;
     
     printf("Taken time: %f sec -----------------------------------------------\n", takenTime);
-    printf("Thread that found the bigger integer: %d - Bigger number: %d\n", threadThatFoundBigger, bigger);
-    printf("Thread that found the smallest integer: %d - Smallest number: %d\n", threadThatFoundSmallest, smallest);
+    printf("Thread that found the bigger integer: %d - Bigger number: %u\n", threadThatFoundBigger, bigger);
+    printf("Thread that found the smallest integer: %d - Smallest number: %u\n", threadThatFoundSmallest, smallest);
     puts("-----------------------------------------------------------------------");
     return 0;
 }
