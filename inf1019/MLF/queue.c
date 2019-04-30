@@ -12,6 +12,14 @@ struct queue
     struct Node *front, *rear; 
 };
 
+Queue * newQueue(void)
+{
+    Queue * new = (Queue *) malloc (sizeof(Queue));
+    new->front = NULL;
+    new->rear = NULL;
+    return new;
+}
+
 void enQueue(Queue *q, void * value)
 {
     struct Node *temp = (struct Node *) malloc (sizeof(struct Node));
@@ -61,3 +69,7 @@ void * deQueue(Queue *q)
     return value ; 
 }
 
+void destructQueue(Queue * p)
+{
+    free(p);
+}
