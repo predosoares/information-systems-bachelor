@@ -15,6 +15,13 @@ struct queue
 Queue * newQueue(void)
 {
     Queue * new = (Queue *) malloc (sizeof(Queue));
+    
+    if (new == NULL)
+    {
+        puts("Error");
+        exit(-1);
+    }
+
     new->front = NULL;
     new->rear = NULL;
     return new;
@@ -43,7 +50,7 @@ void enQueue(Queue *q, void * value)
 void * deQueue(Queue *q) 
 { 
     if (q->front == NULL) 
-    { 
+    {
         printf ("Queue is empty"); 
         return ""; 
     } 
@@ -67,6 +74,11 @@ void * deQueue(Queue *q)
     } 
   
     return value ; 
+}
+
+void * getValue(Queue * p)
+{
+    return p->front->data; 
 }
 
 void destructQueue(Queue * p)
