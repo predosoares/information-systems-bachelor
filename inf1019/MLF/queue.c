@@ -1,87 +1,76 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "queue.h"
 
-struct Node 
-{ 
-    void * data; 
-    struct Node* link; 
-}; 
-  
-struct queue 
+void newQueue( Queue * new )
 {
-    struct Node *front, *rear; 
-};
-
-Queue * newQueue(void)
-{
-    Queue * new = (Queue *) malloc (sizeof(Queue));
+    new->rear = -1;
+    new->front = -1;
+    new->size = NUM_OF_ELEMENTS;
     
-    if (new == NULL)
+    for (int i = 0; i < NUM_OF_ELEMENTS; i++)
     {
-        puts("Error");
-        exit(-1);
+        new->array[i] = NULL;
     }
-
-    new->front = NULL;
-    new->rear = NULL;
-    return new;
 }
 
-void enQueue(Queue *q, void * value)
-{
-    struct Node *temp = (struct Node *) malloc (sizeof(struct Node));
-    
-    temp->data = value; 
-    
-    if (q->front == NULL)
-    {
-        q->front = temp; 
-    }
-    else
-    {
-        q->rear->link = temp;
-    }
-    
-    q->rear = temp;
-    q->rear->link = q->front; 
-} 
-
-
-void * deQueue(Queue *q) 
+void enQueue(Queue * q, void * value) 
 { 
-    if (q->front == NULL) 
-    {
-        printf ("Queue is empty"); 
-        return ""; 
+    if ((q->front == 0 && q->rear == q->size-1) || 
+            (q->rear == (q->front-1)%(q->size-1))) 
+    { 
+        printf("\nQueue is Full"); 
+        return;
     } 
   
-    void * value;
+    else if (q->front == -1) /* Insert First Element */
+    { 
+        q->front = q->rear = 0; 
+        q->array[q->rear] = value; 
+    } 
+  
+    else if (q->rear == q->size-1 && q->front != 0) 
+    { 
+        q->rear = 0; 
+        q->array[q->rear] = value; 
+    } 
+  
+    else
+    { 
+        q->rear++; 
+        q->array[q->rear] = value; 
+    }
+
+    
+} 
+  
+void * deQueue(Queue * q) 
+{ 
+    if (q->front == -1) 
+    { 
+        printf("\nQueue is Empty"); 
+        return (void *)-1; 
+    } 
+  
+    void * data = q->array[q->front]; 
+    q->array[q->front] = (void *)-1; 
     
     if (q->front == q->rear) 
     { 
-        value = q->front->data; 
-        free(q->front); 
-        q->front = NULL; 
-        q->rear = NULL; 
+        q->front = -1; 
+        q->rear = -1; 
     } 
+    else if (q->front == q->size-1) 
+        q->front = 0; 
     else
-    { 
-        struct Node *temp = q->front; 
-        value = temp->data; 
-        q->front = q->front->link; 
-        q->rear->link= q->front; 
-        free(temp); 
-    } 
+        q->front++; 
   
-    return value ; 
+    return data; 
 }
 
-void * getValue(Queue * p)
+void * getFront(Queue * q)
 {
-    return p->front->data; 
-}
-
-void destructQueue(Queue * p)
-{
-    free(p);
+    Queue * curr = q->array[q->front];
+    return (void *) curr;
 }
