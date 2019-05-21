@@ -12,7 +12,6 @@
 #include "queue.h"
 
 #define EVER ;;
-#define SHMKEY 8847
 #define NUM_OF_PRIORITY_QUEUES 3
 #define QUANTUM 2
 #define WAIT 3
@@ -65,7 +64,7 @@ void startNextProcess(void)
             next = getFront(priorityQueues[i]);
             next.state = RunningState;
             priorityOfCurrentProcess = next.priority;
-            quantuns = (unsigned short) power(2,priorityOfCurrentProcess);
+            quantuns = (unsigned short) power(2, priorityOfCurrentProcess);
             kill(next.pid, SIGCONT);
             break;
         }
