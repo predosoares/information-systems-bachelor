@@ -13,7 +13,7 @@
 
 #define EVER ;;
 #define NUM_OF_PRIORITY_QUEUES 3
-#define QUANTUM 2
+#define QUANTUM 1.1
 #define WAIT 3
 
 typedef struct program
@@ -47,6 +47,25 @@ int power(int x, unsigned int y)
         return x * temp * temp;
     }
 }
+
+void priorityToStr(priority_t p, char * priority)
+{
+    switch(p)
+    {
+        case high:
+            strcpy(priority, "high");
+            break;
+        case medium:
+            strcpy(priority, "medium");
+            break;
+        case low:
+            strcpy(priority, "low");
+            break;
+        default:
+            break;
+    }
+}
+
 
 void processTerminated(Process p)
 {
@@ -85,17 +104,26 @@ void handlePriority(bool up)
     unsigned short gap;
     Process curr = up ? deQueue(waitingIOQueue) : deQueue(priorityQueues[priorityOfCurrentProcess]);
     curr.state = SleepingState;
+    char priority[7];
 
     switch(up)
     {
         case true:
             gap = (curr.priority == high) ? 0 : 1;
             curr.priority -= gap;
+            priorityToStr(curr.priority, priority);
+            puts("------------------------------------------------------------");
+            printf("> Process %d was promoted to %s priority.\n", curr.pid, priority);
+            puts("------------------------------------------------------------");
             enQueue(priorityQueues[curr.priority], curr);
             break;
         case false:
             gap = (priorityOfCurrentProcess == low) ? 0 : 1;
             curr.priority += gap;
+            priorityToStr(curr.priority, priority);
+            puts("------------------------------------------------------------");
+            printf("> Process %d was demoted to %s priority.\n", curr.pid, priority);
+            puts("------------------------------------------------------------");
             enQueue(priorityQueues[priorityOfCurrentProcess + gap], curr);
             break;
         default:
@@ -127,15 +155,7 @@ void checkIfDoneIOAndPutInReady(void)
     int numOfWaitingProcesses;
     int diff_t;
     
-    
-    if (isEmpty(priorityQueues[0]) && isEmpty(priorityQueues[1]) && isEmpty(priorityQueues[2]))
-    {
-        allQueuesAreEmpty = 1;
-    }
-    else
-    {
-        allQueuesAreEmpty = 0;
-    }
+    allQueuesAreEmpty = (isEmpty(priorityQueues[0]) && isEmpty(priorityQueues[1]) && isEmpty(priorityQueues[2])) ? 1 : 0;
     
     if (!isEmpty(waitingIOQueue))
     {
@@ -150,7 +170,6 @@ void checkIfDoneIOAndPutInReady(void)
             if ( diff_t >= WAIT )
             {
                 printf("> The process %d is ready again\n", waiting.pid);
-                //enQueue(priorityQueues[ready.priority], ready);
                 handlePriority(true);
             }
             else
@@ -175,15 +194,18 @@ void sigttinHandler(int signal)
 void sigalrmHandler(int signal)
 {
     Process curr;
-
     checkIfDoneIOAndPutInReady();
 
     if(allQueuesAreEmpty == 1)
+    {
         curr.pid = -1;
+    }
     else
+    {
         curr = getFront(priorityQueues[priorityOfCurrentProcess]);
+    }
     
-    printf("> Passaram %d segundos\n", QUANTUM);
+    //printf("> Resta %d segundo(os)\n", quantuns);
 
     quantuns--;
 
@@ -229,8 +251,8 @@ int allEmpty(void)
     return true;
 }
 
-int main(int argc, char* argv[])
-{    
+int main(int argc, char * argv[])
+{
     FILE * pFile;
     Program programs[NUM_OF_ELEMENTS];
     Queue * pointerToSharedMemory;
@@ -239,14 +261,14 @@ int main(int argc, char* argv[])
     char program[20], burst1[5], burst2[5], burst3[5];
     int status, shmid, numProcesses = 0;
 
-    /*
-    if (argc != 2)
+    if(argc != 2)
     {
-        puts("> Error at the argument statements!");
+        puts("Error - Devem ser passados 2 parâmetros");
+        puts("Try: ./MLF <filename>");
         exit(-1);
     }
-    */
     
+
     shmid = shmget (IPC_PRIVATE,
                     (NUM_OF_PRIORITY_QUEUES*sizeof(Queue)),
                     IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR );
@@ -277,11 +299,11 @@ int main(int argc, char* argv[])
     puts("> The priority queues was inicialized.");
 
     waitingIOQueue = (Queue *) malloc(sizeof(Queue));
-    newQueue(waitingIOQueue, 99);
+    newQueue(waitingIOQueue, 0);
 
     puts("> The waiting for I/O queue was inicialized.");
 
-    pFile = fopen("processos.txt", "r");
+    pFile = fopen(argv[1], "r");
 
     while (fscanf(pFile,"%s %s %s %s", &program, &burst1, &burst2, &burst3) != EOF)
     {
@@ -342,8 +364,24 @@ int main(int argc, char* argv[])
     for (int i = 0; i < numProcesses; i++) waitpid(-1, &status, WUNTRACED);
     
     displayQueue(priorityQueues[0]);
+    
+    /**
+     * Apenas show off
+     */
+     
+    puts("     _____ __             __ ");
+    puts("    / ___// /_____ ______/ /_");
+    puts("    \\__ \\/ __/ __ `/ ___/ __/");
+    puts("   ___/ / /_/ /_/ / /  / /_  ");
+    puts("  /____/\\__/\\__,_/_/   \\__/");
+    
+    puts("\t   ____    __          __     __     "); 
+    puts("\t  / __/___/ /  ___ ___/ /_ __/ /__ ____");
+    puts("\t _\\ \\/ __/ _ \\/ -_) _  / // / / -_) __/");
+    puts("\t/___/\\__/_//_/\\__/\\_,_/\\_,_/_/\\__/_/   ");
+                                    
+    puts("");                      
 
-    puts("> Start scheduler.");
     
     curr = getFront(priorityQueues[0]);
     curr.state = RunningState;
@@ -361,8 +399,45 @@ int main(int argc, char* argv[])
             break;
         }
     }
+    
+    /*
+    puts("                                            ,:");
+    puts("                                          ,' |");
+    puts("                                         /   :");
+    puts("                                      --'   /");
+    puts("                                      \\/ /:/");
+    puts("                                      / ://_\\");
+    puts("                                   __/   /");
+    puts("                                   )'-. /");
+    puts("                                  ./  :\\");
+    puts("                                    /.' '");
+    puts("                                  '/'");
+    puts("                                  +");
+    puts("                                 '");
+    puts("                               `.");
+    puts("                           .-''-");
+    puts("                          (    |");
+    puts("                       . .-'  '.");
+    puts("                      ( (.   )8:");
+    puts("                  .'    / (_  )");
+    puts("                   _. :(.   )8P  `");
+    puts("               .  (  `-' (  `.   .");
+    puts("                .  :  (   .a8a)");
+    puts("               /_`( ''a `a. )'''");
+    puts("           (  (/  .  ' )=='");
+    puts("          (   (    )  .8   +");
+    puts("            (`'8a.( _(   (");
+    puts("         ..-. `8P    ) `  )  +");
+    puts("       -'   (      -ab:  )");
+    puts("     '    _  `    (8P'Ya");
+    puts("   _(    (    )b  -`.  ) +");
+    puts("  ( 8)  ( _.aP'' _a   \( \\   *");
+    puts("+  )/    (8P   (88    )  )");
+    puts("   (a:f   ''     `'`");
+    */
 
-    puts("> End scheduler.");
+    puts("------------------------------------------------------------");
+    puts("\t\t\tEnd scheduler.");
     free(waitingIOQueue);
     shmdt (pointerToSharedMemory);
     shmctl (shmid, IPC_RMID, 0);
