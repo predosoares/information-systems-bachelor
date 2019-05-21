@@ -47,5 +47,6 @@ int main (int argc, char * argv[])
     	sleep(1);
     }
     
+    kill(getppid(), SIGUSR1);
     return 0;
 }

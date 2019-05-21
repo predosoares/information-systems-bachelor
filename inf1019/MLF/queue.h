@@ -24,18 +24,21 @@ typedef struct process
     processState state;
     priority_t priority;
     bound_t bound;
+    time_t start;
 } Process;
 
 typedef struct queue
 { 
     int rear, front;
-    int size; 
+    int size;
+    priority_t priority;
     Process array[NUM_OF_ELEMENTS];
 } Queue;
 
-void newQueue(Queue * q);
+void newQueue(Queue * q, priority_t priority);
 void enQueue(Queue * q, Process p);
 Process deQueue(Queue * q);
 Process getFront(Queue * q);
 void displayQueue(Queue * q);
 int isEmpty(Queue * q);
+int numberOfNodes(Queue * q);

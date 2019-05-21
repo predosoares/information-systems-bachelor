@@ -3,11 +3,12 @@
 #include <limits.h>
 #include "queue.h"
 
-void newQueue( Queue * new )
+void newQueue( Queue * new, priority_t priority)
 {
     new->rear = -1;
     new->front = -1;
     new->size = NUM_OF_ELEMENTS;
+    new->priority = priority;
     
     for (int i = 0; i < NUM_OF_ELEMENTS; i++)
     {
@@ -86,7 +87,7 @@ Process getFront(Queue * q)
 
     if (q->front == -1)
     {
-        printf("> Queue is Empty\n");
+        printf("> Queue is Empty, cannot get front!\n");
         curr.pid = -1;
         return curr;
     }
@@ -122,4 +123,9 @@ void displayQueue(Queue * q)
 int isEmpty(Queue * q)
 {
     return (q->front == -1);
+}
+
+int numberOfNodes(Queue * q)
+{
+    return abs(abs(q->size - q->front) - abs(q->size - q->rear));
 }

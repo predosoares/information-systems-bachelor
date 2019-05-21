@@ -6,15 +6,16 @@
 #include <sys/types.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include "queue.h"
-#include "sem.h"
 
 #define EVER ;;
 #define SHMKEY 8847
 #define NUM_OF_PRIORITY_QUEUES 3
-#define QUANTUM 5
+#define QUANTUM 1
+#define WAIT 3
 
 typedef struct program
 {
@@ -24,87 +25,154 @@ typedef struct program
     char cpuBound3[5];
 } Program;
 
-int lastToExecute, semid;
+priority_t priorityOfCurrentProcess;
+unsigned short quantuns;
 Queue * priorityQueues[NUM_OF_PRIORITY_QUEUES];
+Queue * waitingIOQueue;
+
+int power(int x, unsigned int y)
+{
+    int temp;
+    if (y == 0)
+    {
+        return 1;
+    }
+
+    temp = power (x, y / 2);
+    if ((y % 2) == 0)
+    {
+        return temp * temp;
+    }
+    else
+    {
+        return x * temp * temp;
+    }
+}
 
 void processTerminated(Process p)
 {
     printf(">> Process %d termineted!\n", p.pid);
 }
 
-void sigttinHandler(int signal)
+void startNextProcess(void)
 {
-    semaforoP(semid);
-    Process next, curr = deQueue(priorityQueues[0]);
-    
-    if (!isEmpty(priorityQueues[0]))
-    {
-        next = getFront(priorityQueues[0]);
-    }
-    else
-    {
-        next = curr;
-    }
-    
-    printf("> The process %d realized a I/O operation\n", curr.pid);
+    Process next;
 
-    switch(curr.bound)
+    for (int i = 0; i < NUM_OF_PRIORITY_QUEUES; i++)
     {
-        case first:
-            curr.bound = second;
+        if (!isEmpty(priorityQueues[i]))
+        {
+            next = getFront(priorityQueues[i]);
+            next.state = RunningState;
+            priorityOfCurrentProcess = next.priority;
+            quantuns = (unsigned short) power(2,priorityOfCurrentProcess);
+            kill(next.pid, SIGCONT);
             break;
-        case second:
-            curr.bound = third;
+        }
+    }
+}
+
+void sigusr1Handler(int signal)
+{
+    Process curr = deQueue(priorityQueues[priorityOfCurrentProcess]);
+
+    processTerminated(curr);
+
+    startNextProcess();
+}
+
+void handlePriority(bool up)
+{
+    unsigned short gap;
+    Process curr = deQueue(priorityQueues[priorityOfCurrentProcess]);
+    curr.state = SleepingState;
+
+    switch(up)
+    {
+        case true:
+            gap = (priorityOfCurrentProcess == high) ? 0 : 1;
+            curr.priority -= gap;
+            enQueue(priorityQueues[priorityOfCurrentProcess - gap], curr);
+            break;
+        case false:
+            gap = (priorityOfCurrentProcess == low) ? 0 : 1;
+            curr.priority += gap;
+            enQueue(priorityQueues[priorityOfCurrentProcess + gap], curr);
             break;
         default:
             break;
     }
-
-    kill(next.pid, SIGCONT);
-    enQueue(priorityQueues[0], curr);
-    semaforoV(semid);
 }
-
-void sigchldHandler(int signal)
+/*
+void insertInWaitingQueue(Process curr)
 {
-    Process curr, next;
-    curr = getFront(priorityQueues[0]);
+    time_t start;
+    int gap;
+    time(&start);
+    curr.start = clock();
+    
+    gap = (priorityOfCurrentProcess == high) ? 0 : 1;
+    curr.priority = priorityOfCurrentProcess - gap;
 
-    switch(curr.bound)
+    enQueue(waitingIOQueue, curr);
+}
+*/
+/*
+void checkIfDoneIOAndPutInReady(void)
+{
+    Process waiting, ready;
+    time_t segundos;
+    int numOfWaitingProcesses;
+    double diff_t;
+     
+    if (!isEmpty(waitingIOQueue))
     {
-        case 0:
-            break;
-        case third:
-            semaforoP(semid);
-            if (lastToExecute == curr.pid)
+        numOfWaitingProcesses = numberOfNodes(waitingIOQueue);
+        time(&segundos);
+
+        for (int i = 0; i <= numOfWaitingProcesses; i++)
+        {
+            waiting = getFront(waitingIOQueue);
+            diff_t = (clock() - waiting.start)/CLOCKS_PER_SEC;
+            printf(">>> Waited for %f sec\n", diff_t);
+            if ( diff_t >= WAIT )
             {
-                curr = deQueue(priorityQueues[0]);
-                processTerminated(curr);
-                if (!isEmpty(priorityQueues[0]))
-                {
-                    next = getFront(priorityQueues[0]);
-                    kill(next.pid, SIGCONT);
-                    lastToExecute = next.pid;
-                }
+                
+                ready = deQueue(waitingIOQueue);
+                printf("> The process %d is ready again\n", ready.pid);
+                enQueue(priorityQueues[ready.priority], ready);
             }
-            semaforoV(semid);
-            break;
+        }
     }
+}
+*/
+void sigttinHandler(int signal)
+{
+    Process curr = getFront(priorityQueues[priorityOfCurrentProcess]);
+    printf("> The process %d realized a I/O operation\n", curr.pid);
+    
+    //checkIfDoneIOAndPutInReady();
+    //insertInWaitingQueue(curr);
+    handlePriority(true);
+    
+    startNextProcess();
 }
 
 void sigalrmHandler(int signal)
 {
-    semaforoP(semid);
-   
-    Process curr = deQueue(priorityQueues[0]);
-    Process next = getFront(priorityQueues[0]);
-    kill(curr.pid, SIGSTOP);
+    Process curr = getFront(priorityQueues[priorityOfCurrentProcess]);
     printf("> Passaram %d segundos\n", QUANTUM);
-    kill(next.pid, SIGCONT);
-    lastToExecute = next.pid;
-    enQueue(priorityQueues[0], curr);
     
-    semaforoV(semid);
+    //checkIfDoneIOAndPutInReady();
+
+    quantuns--;
+
+    if ((quantuns == 0) && (curr.pid != -1))
+    {
+        kill(curr.pid, SIGSTOP);
+        handlePriority(false); //para descer
+        startNextProcess();
+    }    
 }
 
 void printProcess(Process p)
@@ -133,6 +201,12 @@ int allEmpty(void)
             return false;
         }
     }
+
+    if (!isEmpty(waitingIOQueue))
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -146,9 +220,6 @@ int main(int argc, char* argv[])
     char program[20], burst1[5], burst2[5], burst3[5];
     int status, shmid, numProcesses = 0;
 
-    semid = semget (IPC_PRIVATE, 1, 0666 | IPC_CREAT);
-    setSemValue(semid);
-
     /*
     if (argc != 2)
     {
@@ -157,7 +228,7 @@ int main(int argc, char* argv[])
     }
     */
     
-    shmid = shmget (SHMKEY,
+    shmid = shmget (IPC_PRIVATE,
                     (NUM_OF_PRIORITY_QUEUES*sizeof(Queue)),
                     IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR );
     
@@ -180,12 +251,16 @@ int main(int argc, char* argv[])
     for (int i = 0; i < NUM_OF_PRIORITY_QUEUES; i++)
     {
        priorityQueues[i] = pointerToSharedMemory;
-       newQueue(priorityQueues[i]);
-       displayQueue(priorityQueues[i]);
+       newQueue(priorityQueues[i], i);
        pointerToSharedMemory++;
     }
     
     puts("> The priority queues was inicialized.");
+
+    waitingIOQueue = (Queue *) malloc(sizeof(Queue));
+    newQueue(waitingIOQueue, 99);
+
+    puts("> The waiting for I/O queue was inicialized.");
 
     pFile = fopen("processos.txt", "r");
 
@@ -204,12 +279,12 @@ int main(int argc, char* argv[])
     printf("> There is a total of %d processes.\n", numProcesses);
 
     signal(SIGTTIN, sigttinHandler);
-    signal(SIGCHLD, sigchldHandler);
+    signal(SIGUSR1, sigusr1Handler);
     signal(SIGALRM, sigalrmHandler);
     
     for (int i = 0; i < numProcesses; i++)
     {
-        semaforoP(semid);
+        
         puts("> Creating a child process.");
 
         if((pid = fork()) == 0) // Child code
@@ -230,8 +305,6 @@ int main(int argc, char* argv[])
             argv[3] = programs[i].cpuBound3;
             
             puts("> Putting to sleep.");
-            
-            semaforoV(semid);
             
             raise(SIGSTOP);
             
@@ -255,8 +328,9 @@ int main(int argc, char* argv[])
     
     curr = getFront(priorityQueues[0]);
     curr.state = RunningState;
+    priorityOfCurrentProcess = high;
+    quantuns = 1;
     kill(curr.pid, SIGCONT);
-    lastToExecute = curr.pid;
 
     for(EVER)
     {
@@ -270,7 +344,7 @@ int main(int argc, char* argv[])
     }
 
     puts("> End scheduler.");
-    delSemValue(semid);
+    free(waitingIOQueue);
     shmdt (pointerToSharedMemory);
     shmctl (shmid, IPC_RMID, 0);
 
