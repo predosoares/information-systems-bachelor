@@ -1,3 +1,4 @@
+#include <time.h>
 #define NUM_OF_ELEMENTS 50
 
 typedef enum {
@@ -12,18 +13,11 @@ typedef enum {
     low
 } priority_t;
 
-typedef enum {
-    first,
-    second,
-    third
-} bound_t;
-
 typedef struct process
 {
     pid_t pid;
     processState state;
     priority_t priority;
-    bound_t bound;
     time_t start;
 } Process;
 

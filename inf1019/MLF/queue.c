@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <time.h>
 #include "queue.h"
 
 void newQueue( Queue * new, priority_t priority)
@@ -15,7 +16,6 @@ void newQueue( Queue * new, priority_t priority)
         new->array[i].pid = -1;
         new->array[i].state = 99;
         new->array[i].priority = 99;
-        new->array[i].bound = 99;
     }
 }
 
@@ -24,7 +24,7 @@ void newNode(Queue * q, Process p)
     q->array[q->rear].pid = p.pid;
     q->array[q->rear].state = p.state;
     q->array[q->rear].priority = p.priority;
-    q->array[q->rear].bound = p.bound;
+    q->array[q->rear].start = p.start;
 }
 
 void enQueue(Queue * q, Process p) 

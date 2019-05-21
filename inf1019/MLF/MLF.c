@@ -14,7 +14,7 @@
 #define EVER ;;
 #define SHMKEY 8847
 #define NUM_OF_PRIORITY_QUEUES 3
-#define QUANTUM 1
+#define QUANTUM 2
 #define WAIT 3
 
 typedef struct program
@@ -26,7 +26,7 @@ typedef struct program
 } Program;
 
 priority_t priorityOfCurrentProcess;
-unsigned short quantuns;
+unsigned short quantuns, allQueuesAreEmpty = 0;
 Queue * priorityQueues[NUM_OF_PRIORITY_QUEUES];
 Queue * waitingIOQueue;
 
@@ -84,15 +84,15 @@ void sigusr1Handler(int signal)
 void handlePriority(bool up)
 {
     unsigned short gap;
-    Process curr = deQueue(priorityQueues[priorityOfCurrentProcess]);
+    Process curr = up ? deQueue(waitingIOQueue) : deQueue(priorityQueues[priorityOfCurrentProcess]);
     curr.state = SleepingState;
 
     switch(up)
     {
         case true:
-            gap = (priorityOfCurrentProcess == high) ? 0 : 1;
+            gap = (curr.priority == high) ? 0 : 1;
             curr.priority -= gap;
-            enQueue(priorityQueues[priorityOfCurrentProcess - gap], curr);
+            enQueue(priorityQueues[curr.priority], curr);
             break;
         case false:
             gap = (priorityOfCurrentProcess == low) ? 0 : 1;
@@ -102,72 +102,93 @@ void handlePriority(bool up)
         default:
             break;
     }
+
+    if (allQueuesAreEmpty == 1)
+    {
+        priorityOfCurrentProcess = curr.priority;
+        allQueuesAreEmpty = 0;
+    }
 }
-/*
+
 void insertInWaitingQueue(Process curr)
 {
     time_t start;
-    int gap;
     time(&start);
-    curr.start = clock();
-    
-    gap = (priorityOfCurrentProcess == high) ? 0 : 1;
-    curr.priority = priorityOfCurrentProcess - gap;
+
+    curr.start = start;
 
     enQueue(waitingIOQueue, curr);
+    startNextProcess();
 }
-*/
-/*
+
 void checkIfDoneIOAndPutInReady(void)
 {
     Process waiting, ready;
-    time_t segundos;
+    time_t seconds;
     int numOfWaitingProcesses;
-    double diff_t;
-     
+    int diff_t;
+    
+    
+    if (isEmpty(priorityQueues[0]) && isEmpty(priorityQueues[1]) && isEmpty(priorityQueues[2]))
+    {
+        allQueuesAreEmpty = 1;
+    }
+    else
+    {
+        allQueuesAreEmpty = 0;
+    }
+    
     if (!isEmpty(waitingIOQueue))
     {
         numOfWaitingProcesses = numberOfNodes(waitingIOQueue);
-        time(&segundos);
+        time(&seconds);
 
         for (int i = 0; i <= numOfWaitingProcesses; i++)
         {
             waiting = getFront(waitingIOQueue);
-            diff_t = (clock() - waiting.start)/CLOCKS_PER_SEC;
-            printf(">>> Waited for %f sec\n", diff_t);
+            diff_t = difftime(seconds, waiting.start);
+
             if ( diff_t >= WAIT )
             {
-                
-                ready = deQueue(waitingIOQueue);
-                printf("> The process %d is ready again\n", ready.pid);
-                enQueue(priorityQueues[ready.priority], ready);
+                printf("> The process %d is ready again\n", waiting.pid);
+                //enQueue(priorityQueues[ready.priority], ready);
+                handlePriority(true);
+            }
+            else
+            {
+                break;
             }
         }
     }
 }
-*/
+
 void sigttinHandler(int signal)
 {
-    Process curr = getFront(priorityQueues[priorityOfCurrentProcess]);
+    Process curr = deQueue(priorityQueues[priorityOfCurrentProcess]);
     printf("> The process %d realized a I/O operation\n", curr.pid);
     
-    //checkIfDoneIOAndPutInReady();
-    //insertInWaitingQueue(curr);
-    handlePriority(true);
+    checkIfDoneIOAndPutInReady();
+    insertInWaitingQueue(curr);
     
     startNextProcess();
 }
 
 void sigalrmHandler(int signal)
 {
-    Process curr = getFront(priorityQueues[priorityOfCurrentProcess]);
-    printf("> Passaram %d segundos\n", QUANTUM);
+    Process curr;
+
+    checkIfDoneIOAndPutInReady();
+
+    if(allQueuesAreEmpty == 1)
+        curr.pid = -1;
+    else
+        curr = getFront(priorityQueues[priorityOfCurrentProcess]);
     
-    //checkIfDoneIOAndPutInReady();
+    printf("> Passaram %d segundos\n", QUANTUM);
 
     quantuns--;
 
-    if ((quantuns == 0) && (curr.pid != -1))
+    if ((quantuns <= 0) && (curr.pid != -1))
     {
         kill(curr.pid, SIGSTOP);
         handlePriority(false); //para descer
@@ -177,7 +198,7 @@ void sigalrmHandler(int signal)
 
 void printProcess(Process p)
 {
-    printf("> %d %d %d %d\n", p.pid, p.state, p.priority, p.bound);
+    printf("> %d %d %d \n", p.pid, p.state, p.priority);
 }
 
 Process createNewProcessId(void)
@@ -187,7 +208,6 @@ Process createNewProcessId(void)
     new.pid = getpid();
     new.state = SleepingState;
     new.priority = high;
-    new.bound = first;
 
     return new;
 }
