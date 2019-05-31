@@ -1,0 +1,2 @@
+CONCLUSÂO: Essa implementação foi menos complicada que a do exercício anterior já que os só precisavam retirar as mensagens da fila 
+sequencialmente. O processo produtor criou e enviou 64 mensagens e cada consumidor leu 32 mensagens retiradas da mesma fila de mensagens.

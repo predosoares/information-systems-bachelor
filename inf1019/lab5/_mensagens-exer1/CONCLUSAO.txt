@@ -1,0 +1,1 @@
+CONCLUSÃO: para que os dois processos consumidores recebessem a mesma mensagem foi necessário enviar ela duas vezes (com o tipo identificador distinto) já que quando uma mensagem é lida da fila ela é removida. Para que os processos não acabem requisitando a mensagem destinada para outro processo, cada consumidor invoca a chamada msgrcv com o tipo identificador destinado a ele.

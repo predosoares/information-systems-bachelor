@@ -1,0 +1,131 @@
+PRODUCER 				 	CONSUMER1 							CONSUMER2
+Send package: package 0
+							[pid: 33466] Received: package 0
+Send package: package 1                                                                                                              
+																[pid: 33467] Received: package 1
+Send package: package 2
+							[pid: 33466] Received: package 2
+Send package: package 3
+																[pid: 33467] Received: package 3
+Send package: package 4
+							[pid: 33466] Received: package 4
+Send package: package 5
+																[pid: 33467] Received: package 5
+Send package: package 6
+							[pid: 33466] Received: package 6
+Send package: package 7
+																[pid: 33467] Received: package 7
+Send package: package 8
+							[pid: 33466] Received: package 8
+Send package: package 9
+																[pid: 33467] Received: package 9
+Send package: package 10
+							[pid: 33466] Received: package 10
+Send package: package 11
+																[pid: 33467] Received: package 11
+Send package: package 12
+							[pid: 33466] Received: package 12
+Send package: package 13
+																[pid: 33467] Received: package 13
+Send package: package 14
+							[pid: 33466] Received: package 14
+Send package: package 15
+																[pid: 33467] Received: package 15
+Send package: package 16
+							[pid: 33466] Received: package 16
+Send package: package 17
+																[pid: 33467] Received: package 17
+Send package: package 18
+							[pid: 33466] Received: package 18
+Send package: package 19
+																[pid: 33467] Received: package 19
+Send package: package 20
+							[pid: 33466] Received: package 20
+Send package: package 21
+																[pid: 33467] Received: package 21
+Send package: package 22
+							[pid: 33466] Received: package 22
+Send package: package 23
+																[pid: 33467] Received: package 23
+Send package: package 24
+							[pid: 33466] Received: package 24
+Send package: package 25
+																[pid: 33467] Received: package 25
+Send package: package 26
+							[pid: 33466] Received: package 26
+Send package: package 27
+																[pid: 33467] Received: package 27
+Send package: package 28
+							[pid: 33466] Received: package 28
+Send package: package 29
+																[pid: 33467] Received: package 29
+Send package: package 30
+							[pid: 33466] Received: package 30
+Send package: package 31
+																[pid: 33467] Received: package 31
+Send package: package 32
+							[pid: 33466] Received: package 32
+Send package: package 33
+																[pid: 33467] Received: package 33
+Send package: package 34
+							[pid: 33466] Received: package 34
+Send package: package 35
+																[pid: 33467] Received: package 35
+Send package: package 36
+							[pid: 33466] Received: package 36
+Send package: package 37
+																[pid: 33467] Received: package 37
+Send package: package 38
+							[pid: 33466] Received: package 38
+Send package: package 39
+																[pid: 33467] Received: package 39
+Send package: package 40
+							[pid: 33466] Received: package 40
+Send package: package 41
+																[pid: 33467] Received: package 41
+Send package: package 42
+							[pid: 33466] Received: package 42
+Send package: package 43
+																[pid: 33467] Received: package 43
+Send package: package 44
+							[pid: 33466] Received: package 44
+Send package: package 45
+																[pid: 33467] Received: package 45
+Send package: package 46
+							[pid: 33466] Received: package 46
+Send package: package 47
+																[pid: 33467] Received: package 47
+Send package: package 48
+							[pid: 33466] Received: package 48
+Send package: package 49
+																[pid: 33467] Received: package 49
+Send package: package 50
+							[pid: 33466] Received: package 50
+Send package: package 51
+																[pid: 33467] Received: package 51
+Send package: package 52
+							[pid: 33466] Received: package 52
+Send package: package 53
+																[pid: 33467] Received: package 53
+Send package: package 54
+							[pid: 33466] Received: package 54
+Send package: package 55
+																[pid: 33467] Received: package 55
+Send package: package 56
+							[pid: 33466] Received: package 56
+Send package: package 57
+																[pid: 33467] Received: package 57
+Send package: package 58
+							[pid: 33466] Received: package 58
+Send package: package 59
+																[pid: 33467] Received: package 59
+Send package: package 60
+							[pid: 33466] Received: package 60
+Send package: package 61
+																[pid: 33467] Received: package 61
+Send package: package 62
+							[pid: 33466] Received: package 62
+Send package: package 63
+																[pid: 33467] Received: package 63
+Consumer 1 ended
+Consumer 2 ended 
