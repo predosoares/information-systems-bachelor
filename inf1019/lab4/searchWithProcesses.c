@@ -1,20 +1,21 @@
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 
 #define SHMKEY 9876
 #define SIZE 16000
-#define NUM_PROCESSES 20
+#define NUM_PROCESSES 50
 
 typedef struct array
 {
-    int array[SIZE];
-    int bigger[NUM_PROCESSES];
-    int smallest[NUM_PROCESSES];
+    unsigned int array[SIZE];
+    unsigned int bigger[NUM_PROCESSES];
+    unsigned int smallest[NUM_PROCESSES];
+    pid_t pid[NUM_PROCESSES];
 
 } tpArray;
 
@@ -22,6 +23,8 @@ void searchInBlocks(tpArray *pStruct, int sector)
 {
     int count = (SIZE/NUM_PROCESSES);
     int ini = count*sector;
+
+    pStruct->pid[sector] = getpid();
 
     for (int i = ini; i < count + ini; i++)
     {
@@ -39,69 +42,72 @@ void searchInBlocks(tpArray *pStruct, int sector)
 
 int main(int argc, char* argv[])
 {
-    clock_t ticks[2];
-    double takenTime;
+    double ticks[2], takenTime;
+    struct timeval tim;
     int status,
         shmid,
-        bigger,
-        smallest,
+        extra,
         processThatFoundBigger,
         processThatFoundSmallest;
+    unsigned int bigger,
+                 smallest;
     tpArray *pStruct;
     
+    extra = 3*NUM_PROCESSES;
     
-    
-    ticks[0] = clock();
+    gettimeofday(&tim, NULL);
+    ticks[0] = tim.tv_sec+(tim.tv_usec/1000000.0);
     
     for (int i = 0; i < NUM_PROCESSES; i++) {
-        if(fork() == 0) 
-        { 
-            printf ("[son] pid %d from [parent] pid %d\n", getpid(), getppid()); 
-            
-            shmid = shmget (SHMKEY,(20 + SIZE)*(sizeof (int)), S_IRUSR );
-            
+        if(fork() == 0) /* Only child process will execute this */ 
+        {
+            shmid = shmget (SHMKEY,(extra + SIZE)*(sizeof (int)), S_IRUSR );
             pStruct = (tpArray *) shmat (shmid, 0, 0);
             searchInBlocks (pStruct, i);
-            
             shmdt (pStruct);
             exit(0);
         }
     }
-    
-    waitpid (-1, &status, 0);
-    
-    shmid = shmget (SHMKEY,(20 + SIZE)*(sizeof (int)), S_IRUSR );
+
+    // Wait for all process to terminate
+    for (int i = 0; i < NUM_PROCESSES; i++)
+    {
+        waitpid (-1, &status, 0);
+    }
+
+    shmid = shmget (SHMKEY,(extra + SIZE)*(sizeof (int)), S_IRUSR );
     pStruct = (tpArray *) shmat (shmid, 0, 0);
             
     bigger = pStruct->bigger[0];
     smallest = pStruct->smallest[0];
-            
+
     for (int i = 1; i < NUM_PROCESSES; i++)
     {
         if ( pStruct->smallest[i] < smallest )
         {
             smallest = pStruct->smallest[i];
-            processThatFoundSmallest = i;
+            processThatFoundSmallest = pStruct->pid[i];
         }
         if ( pStruct->bigger[i] > bigger )
         {
             bigger = pStruct->bigger[i];
-            processThatFoundBigger = i;
+            processThatFoundBigger = pStruct->pid[i];
         }
     }
  
-    shmdt (pStruct);
-            
-    ticks[1] = clock();
-            
-    takenTime = (double) (ticks[1] - ticks[0]) / CLOCKS_PER_SEC;
+    shmdt (pStruct); // detach the allocated memory to the process
     
-    printf("Taken time: %f sec -----------------------------------------------\n", takenTime);
-    printf("Process that found the bigger integer: %d - Bigger number: %d\n", processThatFoundBigger, bigger);
-    printf("Process that found the smallest integer: %d - Smallest number: %d\n", processThatFoundSmallest, smallest);
-    puts("-----------------------------------------------------------------------");
+    gettimeofday(&tim, NULL);
+    ticks[1] = tim.tv_sec+(tim.tv_usec/1000000.0);
             
-    // libera a memória compartilhada
+    takenTime = (double) (ticks[1] - ticks[0]);
+    
+    printf("Taken time: %f sec ---------------------------------------------------------\n", takenTime);
+    printf("Process that found the bigger integer was (pid): %d - Bigger number: %u\n", processThatFoundBigger, bigger);
+    printf("Process that found the smallest integer was (pid): %d - Smallest number: %u\n", processThatFoundSmallest, smallest);
+    puts("----------------------------------------------------------------------------------");
+            
+    // free the shared allocated memory
     shmctl (shmid, IPC_RMID, 0);
     return 0;
 }

@@ -1,11 +1,11 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
+#include <sys/time.h>
 #include <limits.h>
 #include <unistd.h>
 
-#define NUM_THREADS 20
+#define NUM_THREADS 50
 #define SIZE 16000
 
 // Global Variables ------------------
@@ -83,7 +83,8 @@ void inicializeArray(void)
     }
 
     listOfNumbers->lenght = SIZE;
-       
+    iniciar_aleatorio();
+    
     for (int i = 0; i < listOfNumbers->lenght; i++)
     {
         listOfNumbers->array[i] = aleatorio(0, UINT_MAX);
@@ -94,23 +95,22 @@ void inicializeArray(void)
 int main(int argc, char * argv[])
 {
     pthread_t threads[NUM_THREADS];
-    clock_t ticks[2];
-    double takenTime;
+    double ticks[2], takenTime;
+    struct timeval tim;
     int * t = (int *) malloc (NUM_THREADS*sizeof(int));
     int i;
 
-    iniciar_aleatorio();
     inicializeArray();
     
     bigger = listOfNumbers->array[0];
     smallest = listOfNumbers->array[0];
     
-    ticks[0] = clock();
+    gettimeofday(&tim, NULL);
+    ticks[0] = tim.tv_sec+(tim.tv_usec/1000000.0);
     
     for (i = 0 ; i < NUM_THREADS ; i++)
     {
         *t = i;
-        printf("Creating thread %d\n", *t);
         pthread_create(&threads[*t], NULL, search, (void *)t);
         t++;
     }
@@ -120,9 +120,10 @@ int main(int argc, char * argv[])
         pthread_join(threads[i], NULL); /* wait for all the threads to terminate */
     }
 
-    ticks[1] = clock();
-    
-    takenTime = (double) (ticks[1] - ticks[0]) / CLOCKS_PER_SEC;
+    gettimeofday(&tim, NULL);
+    ticks[1] = tim.tv_sec+(tim.tv_usec/1000000.0);
+
+    takenTime = (double) (ticks[1] - ticks[0]);
     
     printf("Taken time: %f sec -----------------------------------------------\n", takenTime);
     printf("Thread that found the bigger integer: %d - Bigger number: %u\n", threadThatFoundBigger, bigger);
