@@ -3,12 +3,12 @@
 /**
  * 
  */
-int LRU( ListOfFrames * mainMemory ) ;
+int LRU( ListOfFrames * mainMemory , tpListOfVirtualPages * ListOfVirtualPages ) ;
 
 /**
  * 
  */
-int NRU( ListOfFrames * mainMemory ) ;
+int NRU( ListOfFrames * mainMemory , tpListOfVirtualPages * ListOfVirtualPages ) ;
 
 /**
  * 

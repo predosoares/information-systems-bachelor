@@ -2,7 +2,9 @@
 #include <sys/types.h>
 #include "algorithms.h"
 
-int LRU( ListOfFrames * mainMemory )
+#define NOT_IN_MAIN_MEMORY -1
+
+int LRU( ListOfFrames * mainMemory , tpListOfVirtualPages * ListOfVirtualPages )
 {
     int removedFrame ;
 
@@ -22,15 +24,17 @@ int LRU( ListOfFrames * mainMemory )
         }
     }
 
+    ListOfVirtualPages->list[mainMemory->list[removedFrame].virtualPageIndex] = NOT_IN_MAIN_MEMORY ;
+
     return removedFrame ;
 }
 
-int NRU( ListOfFrames * mainMemory )
+int NRU( ListOfFrames * mainMemory , tpListOfVirtualPages * ListOfVirtualPages )
 {
     int removedFrame[ 4 ] = { -1 , -1 , -1 , -1 };
     int i;
 
-    for ( i = 0 ; i < mainMemory->count; i++ )
+    for ( i = 0 ; i < mainMemory->count ; i++ )
     {
         if ( mainMemory->list[i].flagM == false && mainMemory->list[i].flagR == false )
         {
@@ -57,9 +61,10 @@ int NRU( ListOfFrames * mainMemory )
         {
             continue ;
         }
-
         break ;
     }
+
+    ListOfVirtualPages->list[mainMemory->list[removedFrame[i]].virtualPageIndex] = NOT_IN_MAIN_MEMORY ;
 
     return removedFrame[i] ;
 }

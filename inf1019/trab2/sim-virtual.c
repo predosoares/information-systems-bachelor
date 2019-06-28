@@ -1,16 +1,26 @@
 #include <unistd.h>
+#include <assert.h>
 #include "algorithms.h"
+
+#define DEBUG if(isDebugging())
 
 #define NOT_IN_MAIN_MEMORY -1
 #define SIZE_MEMORY_ADRESS 32
 
-void inicializeMainMemory( ListOfFrames * mainMemory, unsigned int numFrames )
+static bool debbugingMode = false;
+
+bool isDebugging( void )
+{
+    return debbugingMode;
+}
+
+void inicializeMainMemory( ListOfFrames * const mainMemory, const unsigned int numFrames )
 {
     mainMemory->list = ( Frame * ) malloc ( numFrames * sizeof(Frame) ) ;
     mainMemory->count = 0 ;
 }
 
-void inicializeListOfVirtualPages( tpListOfVirtualPages * ListOfVirtualPages , unsigned int numVirtualPages )
+void inicializeListOfVirtualPages( tpListOfVirtualPages * const ListOfVirtualPages , const unsigned int numVirtualPages )
 {
     ListOfVirtualPages->maxVirtualPages = numVirtualPages ;
 
@@ -22,14 +32,15 @@ void inicializeListOfVirtualPages( tpListOfVirtualPages * ListOfVirtualPages , u
     }
 }
 
-void allocNewFrame( Frame * ListOfFrames, int frameIndex )
+void allocNewFrame( Frame * const ListOfFrames, const int frameIndex , const int virtualPagaIndex )
 {
-    ListOfFrames[frameIndex].flagR = 0 ;
-    ListOfFrames[frameIndex].flagM = 0 ;
-    ListOfFrames[frameIndex].lastAcess = clock() ;
+    ListOfFrames[frameIndex].flagR = false ;
+    ListOfFrames[frameIndex].flagM = false ;
+    ListOfFrames[frameIndex].lastAcess = clock( ) ;
+    ListOfFrames[frameIndex].virtualPageIndex = virtualPagaIndex ;
 }
 
-void validateFramePageSize( unsigned int frameSize )
+void validateFramePageSize( const unsigned int frameSize )
 {
     if ( frameSize < 8 || frameSize > 32 )
     {
@@ -38,7 +49,7 @@ void validateFramePageSize( unsigned int frameSize )
     }
 }
 
-void validateMainMemorySize( unsigned int mainMemorySize )
+void validateMainMemorySize( const unsigned int mainMemorySize )
 {
     if ( mainMemorySize < 1024 || mainMemorySize > 16384 )
     {
@@ -47,7 +58,7 @@ void validateMainMemorySize( unsigned int mainMemorySize )
     }
 }
 
-int simulaMemoriaVirtual( char * algoritmo, char * arquivo, unsigned int frameSize, unsigned int mainMemorySize, char * mode )
+int simulaMemoriaVirtual( const char * algoritmo, const char * arquivo, unsigned int frameSize, unsigned int mainMemorySize, const char * mode )
 {
     char rw ;
     unsigned int numFrames ,
@@ -69,11 +80,11 @@ int simulaMemoriaVirtual( char * algoritmo, char * arquivo, unsigned int frameSi
 
     validateFramePageSize( frameSize ) ;
 
-    frameSize *= 1024;
+    frameSize *= 1024 ;
 
     validateMainMemorySize( mainMemorySize ) ;
 
-    mainMemorySize *= 1024;
+    mainMemorySize *= 1024 ;
 
     offsetBits = ( unsigned int ) ( log10( frameSize ) / log10( 2 ) ) ;
 
@@ -98,16 +109,20 @@ int simulaMemoriaVirtual( char * algoritmo, char * arquivo, unsigned int frameSi
             {
                 if ( strcmp( "LRU" , algoritmo ) == 0 )
                 {
-                    frameIndex = LRU( &mainMemory ) ;
-                    
+                    frameIndex = LRU( &mainMemory , &ListOfVirtualPages ) ;
                 }
                 else if ( strcmp( "NRU" , algoritmo ) == 0 )
                 {
-                    frameIndex = NRU( &mainMemory ) ;
+                    frameIndex = NRU( &mainMemory , &ListOfVirtualPages ) ;
                 }
                 else if ( strcmp( "NOVO" , algoritmo ) == 0 )
                 {
                     frameIndex = NOVO( &mainMemory ) ;
+                }
+                else
+                {
+                    puts("Chosen algorithm do no exist!") ;
+                    exit( -1 ) ;   
                 }
             }
             else // Main memory is not full yet
@@ -116,27 +131,32 @@ int simulaMemoriaVirtual( char * algoritmo, char * arquivo, unsigned int frameSi
                 mainMemory.count++ ;
             }
 
-            allocNewFrame( mainMemory.list , frameIndex ) ;
+            allocNewFrame( mainMemory.list , frameIndex , pageIndex ) ;
             ListOfVirtualPages.list[pageIndex] = frameIndex ;
         }
         else // Process is already in the memory
         {
-            mainMemory.list[frameIndex].flagR = rw == 'R' ? true : false ;
-            mainMemory.list[frameIndex].flagM = rw == 'W' ? true : false ;
+            frameIndex = ListOfVirtualPages.list[pageIndex] ;
+
+            mainMemory.list[frameIndex].flagR = rw == 'R' ? true : mainMemory.list[frameIndex].flagR ;
+            mainMemory.list[frameIndex].flagM = rw == 'W' ? true : mainMemory.list[frameIndex].flagM ;
+            mainMemory.list[frameIndex].lastAcess = clock( ) ;
         }
 
         if ( rw == 'W' ) { pagesWritedInDisc++ ; }
 
-        if ( resetAlarm == 100 )
+        if ( resetAlarm == 1000 )
         {
-            for (int i = 0; i < mainMemory.count ; i++)
+            for (int i = 0; i < mainMemory.count ; i++ )
             {
                 mainMemory.list[frameIndex].flagR = false ;
                 mainMemory.list[frameIndex].flagM = false ;
             }
 
-            resetAlarm = 1;
+            resetAlarm = 1 ;
         }
+
+        DEBUG ;
 
         resetAlarm++ ;
         timeTookCounter++ ;

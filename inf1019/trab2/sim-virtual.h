@@ -13,6 +13,8 @@ typedef struct frame {
     
     clock_t lastAcess ;
 
+    int virtualPageIndex ;
+
 } Frame ;
 
 typedef struct listofframes {
@@ -32,6 +34,7 @@ typedef struct listofvirtualpages {
     unsigned int maxVirtualPages ;
 
 } tpListOfVirtualPages ;
+
 /**
  * 
  */
@@ -45,7 +48,7 @@ void inicializeListOfVirtualPages( tpListOfVirtualPages * ListOfVirtualPages , u
 /**
  *
  */
-void allocNewFrame( Frame * ListOfFrames, int frameIndex ) ;
+void allocNewFrame( Frame * ListOfFrames, int frameIndex, int virtualPagaIndex ) ;
 
 /**
  * 
@@ -60,7 +63,7 @@ void validateMainMemorySize( unsigned int mainMemorySize ) ;
 /**
  * 
  */
-int simulaMemoriaVirtual( char * algoritmo, char * arquivo, unsigned int frameSize, unsigned int mainMemorySize, char * mode ) ;
+int simulaMemoriaVirtual( const char *  algoritmo, const char *  arquivo, unsigned int frameSize, unsigned int mainMemorySize, const char * mode ) ;
 
 
 
