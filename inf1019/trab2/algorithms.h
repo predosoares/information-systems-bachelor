@@ -1,4 +1,5 @@
-#include "sim-virtual.h"
+#if ! defined( ALGORITHM_ )
+#define ALGORITHM_ 
 
 /**
  * 
@@ -13,4 +14,6 @@ int NRU( ListOfFrames * mainMemory , tpListOfVirtualPages * ListOfVirtualPages )
 /**
  * 
  */
-int NOVO( ListOfFrames * mainMemory ) ;
+int NOVO( void ) ;
+
+#endif

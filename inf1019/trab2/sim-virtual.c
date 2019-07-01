@@ -1,62 +1,69 @@
-#include <unistd.h>
-#include <assert.h>
-#include "algorithms.h"
+/***************************************************************************
+*  $MCI Módulo de implementação: SIM  Simulador de Memória Virtual
+*
+*  Arquivo gerado:              sim-virtual.c
+*  Letras identificadoras:      SIM
+*
+*  Nome da base de software:    Simulação de Paginação e Algoritmos de Substitição
+*                               de Páginas Redigidos em C
+*
+*  Projeto: INF1019 Simulador de Algoritmo de Substituição de Páginas em C
+*  Autores: phs - Pedro Henrique Soares
+*           jr  - Jonny Russo
+*
+*  $HA Histórico de evolução:
+*     Versão  Autor    Data      Observações
+*     1.0.0    phs   28/jun/2019 início desenvolvimento
+*
+***************************************************************************/
+#include <time.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
-#define DEBUG if(isDebugging())
+#include "debug.h"
+#include "sim-virtual.h"
+#include "algorithms.h"
+#include "futureAccesses.h"
+#include "LISTA.H"
+
+#define DEBUG if ( isDebuggingMode( ) )
 
 #define NOT_IN_MAIN_MEMORY -1
 #define SIZE_MEMORY_ADRESS 32
 
-static bool debbugingMode = false;
+extern LIS_tppLista allAccessesToMemory ;
 
-bool isDebugging( void )
-{
-    return debbugingMode;
-}
+/***** Protótipos das funções encapuladas no Módulo *****/
 
-void inicializeMainMemory( ListOfFrames * const mainMemory, const unsigned int numFrames )
-{
-    mainMemory->list = ( Frame * ) malloc ( numFrames * sizeof(Frame) ) ;
-    mainMemory->count = 0 ;
-}
+static void inicializeMainMemory( ListOfFrames * const mainMemory,
+                                  const unsigned int numFrames    ) ;
 
-void inicializeListOfVirtualPages( tpListOfVirtualPages * const ListOfVirtualPages , const unsigned int numVirtualPages )
-{
-    ListOfVirtualPages->maxVirtualPages = numVirtualPages ;
+static void destroyMainMemory( ListOfFrames * const mainMemory ) ;
 
-    ListOfVirtualPages->list = ( VirtualPage * ) malloc ( numVirtualPages * sizeof( VirtualPage ) ) ;
+static void inicializeListOfVirtualPages( tpListOfVirtualPages * const ListOfVirtualPages ,
+                                          const unsigned int numVirtualPages               ) ;
 
-    for ( int i = 0 ; i < ListOfVirtualPages->maxVirtualPages ; i++ )
-    {
-        ListOfVirtualPages->list[i] = NOT_IN_MAIN_MEMORY ;
-    }
-}
+static void destroyListOfVirtualPages( tpListOfVirtualPages * const ListOfVirtualPages ) ;
 
-void allocNewFrame( Frame * const ListOfFrames, const int frameIndex , const int virtualPagaIndex )
-{
-    ListOfFrames[frameIndex].flagR = false ;
-    ListOfFrames[frameIndex].flagM = false ;
-    ListOfFrames[frameIndex].lastAcess = clock( ) ;
-    ListOfFrames[frameIndex].virtualPageIndex = virtualPagaIndex ;
-}
+static void allocNewFrame( Frame * const ListOfFrames ,
+                           const int frameIndex ,
+                           const int virtualPagaIndex ) ;
 
-void validateFramePageSize( const unsigned int frameSize )
-{
-    if ( frameSize < 8 || frameSize > 32 )
-    {
-        puts ("Size of page frame invalid! Try supported values: 8 to 32 KB") ;
-        exit ( -1 ) ;
-    }
-}
+static void validateFramePageSize( const unsigned int frameSize ) ;
 
-void validateMainMemorySize( const unsigned int mainMemorySize )
-{
-    if ( mainMemorySize < 1024 || mainMemorySize > 16384 )
-    {
-        puts ("Size of main memory invalid! Try supported values: 1024 to 16384 KB") ;
-        exit ( -1 ) ;
-    }
-}
+static void validateMainMemorySize( const unsigned int mainMemorySize ) ;
+
+
+/*****  Código das funções exportadas pelo Módulo  *****/
+
+/***************************************************************************
+*
+*  Função: SIM  &Simula Memória Virtual
+*
+*******/
 
 int simulaMemoriaVirtual( const char * algoritmo, const char * arquivo, unsigned int frameSize, unsigned int mainMemorySize, const char * mode )
 {
@@ -75,6 +82,10 @@ int simulaMemoriaVirtual( const char * algoritmo, const char * arquivo, unsigned
 
     ListOfFrames mainMemory ;
     tpListOfVirtualPages ListOfVirtualPages ;
+    
+    checkIfDebuggingModeIsOn( mode ) ;
+
+    DEBUG puts("Executing simulator...") ;
 
     FILE * fd = NULL ;
 
@@ -97,6 +108,8 @@ int simulaMemoriaVirtual( const char * algoritmo, const char * arquivo, unsigned
 
     fd = fopen( arquivo , "r" ) ;
 
+    storeAllTheFutureAccesses( fd  , offsetBits ) ;
+
     while( fscanf(fd, "%x %c ", &addr, &rw) != EOF )
     {
         pageIndex = addr >> offsetBits ;
@@ -104,6 +117,8 @@ int simulaMemoriaVirtual( const char * algoritmo, const char * arquivo, unsigned
         if ( ListOfVirtualPages.list[pageIndex] == NOT_IN_MAIN_MEMORY )
         {
             pageFaultCounter++ ;
+
+            DEBUG printf("Page fault of page nº : %d\n", pageIndex) ;
 
             if ( mainMemory.count == numFrames )
             {
@@ -117,11 +132,13 @@ int simulaMemoriaVirtual( const char * algoritmo, const char * arquivo, unsigned
                 }
                 else if ( strcmp( "NOVO" , algoritmo ) == 0 )
                 {
-                    frameIndex = NOVO( &mainMemory ) ;
+                    frameIndex = NOVO( ) ;
                 }
                 else
                 {
                     puts("Chosen algorithm do no exist!") ;
+                    destroyListOfVirtualPages( &ListOfVirtualPages ) ;
+                    destroyMainMemory( &mainMemory ) ;
                     exit( -1 ) ;   
                 }
             }
@@ -130,12 +147,14 @@ int simulaMemoriaVirtual( const char * algoritmo, const char * arquivo, unsigned
                 frameIndex = mainMemory.count ;
                 mainMemory.count++ ;
             }
-
+            setFrameIndex( frameIndex , pageIndex ) ;
             allocNewFrame( mainMemory.list , frameIndex , pageIndex ) ;
             ListOfVirtualPages.list[pageIndex] = frameIndex ;
         }
         else // Process is already in the memory
         {
+            DEBUG printf("Page hit of page nº : %d\n", pageIndex) ;
+
             frameIndex = ListOfVirtualPages.list[pageIndex] ;
 
             mainMemory.list[frameIndex].flagR = rw == 'R' ? true : mainMemory.list[frameIndex].flagR ;
@@ -156,7 +175,9 @@ int simulaMemoriaVirtual( const char * algoritmo, const char * arquivo, unsigned
             resetAlarm = 1 ;
         }
 
-        DEBUG ;
+        decrementAcesses( pageIndex ) ;
+
+        DEBUG getchar() ;
 
         resetAlarm++ ;
         timeTookCounter++ ;
@@ -165,13 +186,87 @@ int simulaMemoriaVirtual( const char * algoritmo, const char * arquivo, unsigned
     printf("--------------------------===============--------------------------\n") ;
     printf("Name of file : %s\n", arquivo ) ;
     printf("Used algorithm : %s\n", algoritmo ) ;
-    printf("Size of a frame : %d KB\n", frameSize ) ;
-    printf("Size of main memory (RAM) : %d KB\n", mainMemorySize ) ;
+    printf("Size of a frame : %d KB\n", ( unsigned int ) ( frameSize / pow(2, 10) ) ) ;
+    printf("Size of main memory (RAM) : %d MB\n", ( unsigned int ) ( mainMemorySize / pow(2, 20) ) ) ;
     printf("Nº of frames : %d \n", numFrames ) ;
     printf("Simulated time took : %d units\n", timeTookCounter ) ;
     printf("Nº of page-faults : %d\n", pageFaultCounter ) ;
     printf("Nº of pages writed in the disc : %d\n", pagesWritedInDisc ) ;
     printf("--------------------------===============--------------------------\n") ;
 
-    return 0;
+    destroyListOfVirtualPages( &ListOfVirtualPages ) ;
+    destroyMainMemory( &mainMemory ) ;
+
+    return 0 ;
+
+} /* Fim Função: SIM  &Simula Memória Virtual */
+
+/*****  Código das funções encapsuladas no Módulo  *****/
+
+static void inicializeMainMemory( ListOfFrames * const mainMemory, const unsigned int numFrames )
+{
+    mainMemory->list = ( Frame * ) malloc ( numFrames * sizeof(Frame) ) ;
+
+    if ( mainMemory->list == NULL )
+    {
+        puts("Error allocating memory for main memory frames!") ;
+        exit( -1 ) ;
+    }
+
+    mainMemory->count = 0 ;
 }
+
+static void destroyMainMemory( ListOfFrames * const mainMemory )
+{
+    free( mainMemory->list ) ;
+}
+
+static void inicializeListOfVirtualPages( tpListOfVirtualPages * const ListOfVirtualPages , const unsigned int numVirtualPages )
+{
+    ListOfVirtualPages->maxVirtualPages = numVirtualPages ;
+
+    ListOfVirtualPages->list = ( VirtualPage * ) malloc ( numVirtualPages * sizeof( VirtualPage ) ) ;
+
+    if ( ListOfVirtualPages->list == NULL )
+    {
+        puts("Error allocating memory for list of virtual pages!") ;
+        exit( -1 ) ;
+    }
+
+    for ( int i = 0 ; i < ListOfVirtualPages->maxVirtualPages ; i++ )
+    {
+        ListOfVirtualPages->list[i] = NOT_IN_MAIN_MEMORY ;
+    }
+}
+
+static void destroyListOfVirtualPages( tpListOfVirtualPages * const ListOfVirtualPages )
+{
+    free( ListOfVirtualPages->list ) ;
+}
+
+static void allocNewFrame( Frame * const ListOfFrames, const int frameIndex , const int virtualPagaIndex )
+{
+    ListOfFrames[frameIndex].flagR = false ;
+    ListOfFrames[frameIndex].flagM = false ;
+    ListOfFrames[frameIndex].lastAcess = clock( ) ;
+    ListOfFrames[frameIndex].virtualPageIndex = virtualPagaIndex ;
+}
+
+static void validateFramePageSize( const unsigned int frameSize )
+{
+    if ( frameSize < 8 || frameSize > 32 )
+    {
+        puts ("Size of page frame invalid! Try supported values: 8 to 32 KB") ;
+        exit ( -1 ) ;
+    }
+}
+
+static void validateMainMemorySize( const unsigned int mainMemorySize )
+{
+    if ( mainMemorySize < 1024 || mainMemorySize > 16384 )
+    {
+        puts ("Size of main memory invalid! Try supported values: 1024 to 16384 KB") ;
+        exit ( -1 ) ;
+    }
+}
+

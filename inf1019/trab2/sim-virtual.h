@@ -1,9 +1,8 @@
-#include <time.h>
+#if ! defined( SIMVIRTUAL_ )
+#define SIMVIRTUAL_ 
+
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <time.h>
 
 typedef struct frame {
 
@@ -23,7 +22,7 @@ typedef struct listofframes {
     
     int count ;
 
-} ListOfFrames ;
+}  ListOfFrames ;
 
 typedef unsigned int VirtualPage ;
 
@@ -33,38 +32,13 @@ typedef struct listofvirtualpages {
     
     unsigned int maxVirtualPages ;
 
-} tpListOfVirtualPages ;
+}  tpListOfVirtualPages ;
 
 /**
  * 
  */
-void inicializeMainMemory( ListOfFrames * mainMemory, unsigned int numFrames ) ;
-
-/**
- * 
- */
-void inicializeListOfVirtualPages( tpListOfVirtualPages * ListOfVirtualPages , unsigned int numVirtualPages ) ;
-
-/**
- *
- */
-void allocNewFrame( Frame * ListOfFrames, int frameIndex, int virtualPagaIndex ) ;
-
-/**
- * 
- */
-void validateFramePageSize( unsigned int frameSize ) ;
-
-/**
- * 
- */
-void validateMainMemorySize( unsigned int mainMemorySize ) ;
-
-/**
- * 
- */
-int simulaMemoriaVirtual( const char *  algoritmo, const char *  arquivo, unsigned int frameSize, unsigned int mainMemorySize, const char * mode ) ;
+int simulaMemoriaVirtual( const char * algoritmo, const char *  arquivo, unsigned int frameSize, unsigned int mainMemorySize, const char * mode ) ;
 
 
-
+#endif
 

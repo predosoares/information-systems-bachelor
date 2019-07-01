@@ -1,5 +1,8 @@
 #include <time.h>
-#include <sys/types.h>
+#include <stdbool.h>
+
+#include "sim-virtual.h"
+#include "futureAccesses.h"
 #include "algorithms.h"
 
 #define NOT_IN_MAIN_MEMORY -1
@@ -69,7 +72,7 @@ int NRU( ListOfFrames * mainMemory , tpListOfVirtualPages * ListOfVirtualPages )
     return removedFrame[i] ;
 }
 
-int NOVO( ListOfFrames * mainMemory )
+int NOVO( void )
 {
-    return 0;
+    return leastAccesses();
 }
