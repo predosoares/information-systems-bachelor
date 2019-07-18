@@ -7,7 +7,7 @@ int main (int argc, char * argv[])
 {
 	int cpuBound;
 
-    printf("%d\n", argc);
+    //printf("%d\n", argc);
 
     for (int i = 1; i < argc - 1; i++)
     {
@@ -16,7 +16,7 @@ int main (int argc, char * argv[])
         //simulates CPU bound
         for (int j = 1; j <= cpuBound; j++)
         {
-    	    printf("> executing process: %d, seconds: %d/%d\n", getpid(), j, cpuBound);
+    	    //printf("> executing process: %d, seconds: %d/%d\n", getpid(), j, cpuBound);
             sleep(1);
         }
 
